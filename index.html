@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>uACR Monitor — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --border: #1e2d45;
+      --accent: #00c8ff;
+      --accent2: #7b61ff;
+      --text: #e8f0fe;
+      --muted: #4a5568;
+      --error: #ff4d6d;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridMove 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(40px); }
+    }
+
+    /* Glow orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .orb1 {
+      width: 400px; height: 400px;
+      background: var(--accent);
+      top: -100px; left: -100px;
+      animation: float1 8s ease-in-out infinite;
+    }
+    .orb2 {
+      width: 300px; height: 300px;
+      background: var(--accent2);
+      bottom: -80px; right: -80px;
+      animation: float2 10s ease-in-out infinite;
+    }
+
+    @keyframes float1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, 30px); }
+    }
+    @keyframes float2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-20px, -20px); }
+    }
+
+    .login-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .brand-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .brand-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.6;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,200,255,0.1);
+    }
+
+    .field input::placeholder {
+      color: var(--muted);
+    }
+
+    .error-msg {
+      font-size: 11px;
+      color: var(--error);
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .error-msg.show { display: block; }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #0a0e1a;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .footer-note {
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 24px;
+      letter-spacing: 1px;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <div class="login-wrapper">
+    <div class="brand">
+      <div class="brand-label">Kidney Health</div>
+      <div class="brand-title">uACR</div>
+      <div class="brand-sub"><span class="dot"></span>Automated Dipstick Monitor</div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>Patient ID</label>
+        <input type="text" id="username" placeholder="Enter patient ID" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="off"/>
+      </div>
+      <div class="error-msg" id="error">Invalid credentials. Please try again.</div>
+      <button class="btn" onclick="login()">Access Dashboard</button>
+    </div>
+
+    <div class="footer-note">BME 4090 — Cornell University</div>
+  </div>
+
+  <script>
+    // Credentials
+    const VALID_USER = "razzypi";
+    const VALID_PASS = "Pa55w0rdr4zzy";
+
+    function login() {
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value;
+      const error = document.getElementById("error");
+
+      if (user === VALID_USER && pass === VALID_PASS) {
+        error.classList.remove("show");
+        window.location.href = "dashboard.html";
+      } else {
+        error.classList.add("show");
+        document.getElementById("password").value = "";
+      }
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") login();
+    });
+  </script>
+</body>
+</html>

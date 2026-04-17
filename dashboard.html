@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>uACR Monitor — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #162032;
+      --border: #1e2d45;
+      --accent: #00c8ff;
+      --accent2: #7b61ff;
+      --green: #00e5a0;
+      --yellow: #ffd166;
+      --red: #ff4d6d;
+      --text: #e8f0fe;
+      --muted: #4a5568;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,14,26,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-patient {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .nav-patient span {
+      color: var(--accent);
+    }
+
+    .logout-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--text);
+      border-color: var(--muted);
+    }
+
+    /* MAIN */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 40px 80px;
+    }
+
+    .welcome {
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .welcome-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .welcome-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .welcome-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* STAT CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.blue::before { background: var(--accent); }
+    .stat-card.purple::before { background: var(--accent2); }
+    .stat-card.green::before { background: var(--green); }
+    .stat-card.yellow::before { background: var(--yellow); }
+
+    .stat-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-unit {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* CHART */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease 0.2s both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .chart-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .chart-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    .risk-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 320px;
+    }
+
+    /* READINGS TABLE */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .table-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .add-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #0a0e1a;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    .add-btn:hover { opacity: 0.85; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 0 0 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      font-size: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(30,45,69,0.5);
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .badge.normal { background: rgba(0,229,160,0.15); color: var(--green); }
+    .badge.moderate { background: rgba(255,209,102,0.15); color: var(--yellow); }
+    .badge.high { background: rgba(255,77,109,0.15); color: var(--red); }
+
+    /* COLOR SWATCH */
+    .swatch {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border-radius: 3px;
+      vertical-align: middle;
+      margin-right: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .modal-field {
+      margin-bottom: 16px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .modal-field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .modal-field input:focus { border-color: var(--accent); }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .modal-cancel {
+      flex: 1;
+      padding: 12px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    .modal-cancel:hover { color: var(--text); border-color: var(--muted); }
+
+    .modal-submit {
+      flex: 2;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #0a0e1a;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .modal-submit:hover { opacity: 0.85; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      main { padding: 24px 20px 60px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">uACR</div>
+  <div class="nav-right">
+    <div class="nav-patient">Patient: <span>BME 4090</span></div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<main>
+  <div class="welcome">
+    <div class="welcome-label">Dashboard</div>
+    <div class="welcome-title">Welcome, BME 4090</div>
+    <div class="welcome-sub">Here's your uACR breakdown over time</div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card blue">
+      <div class="stat-label">Latest uACR</div>
+      <div class="stat-value" id="latestUACR">—</div>
+      <div class="stat-unit">mg/g</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Total Readings</div>
+      <div class="stat-value" id="totalReadings">0</div>
+      <div class="stat-unit">recorded</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Albumin (Pad 1)</div>
+      <div class="stat-value" id="latestAlbumin">—</div>
+      <div class="stat-unit">latest RGB-R value</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Creatinine (Pad 2)</div>
+      <div class="stat-value" id="latestCreatinine">—</div>
+      <div class="stat-unit">latest RGB-R value</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">uACR Over Time</div>
+        <div class="chart-sub">Albumin-to-Creatinine Ratio · mg/g (estimated)</div>
+      </div>
+      <div class="risk-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#00e5a0"></div> Normal (&lt;30)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#ffd166"></div> Moderate (30–300)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#ff4d6d"></div> High (&gt;300)
+        </div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="uacrChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">Reading History</div>
+      <button class="add-btn" onclick="openModal()">+ Add Reading</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date / Time</th>
+          <th>Pad 1 RGB (Albumin)</th>
+          <th>Pad 2 RGB (Creatinine)</th>
+          <th>uACR (est.)</th>
+          <th>Risk Level</th>
+        </tr>
+      </thead>
+      <tbody id="readingsBody">
+        <tr>
+          <td colspan="5" style="color:var(--muted); text-align:center; padding:32px 0; font-size:11px; letter-spacing:1px;">
+            No readings yet. Add your first reading above.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Add Reading Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Add New Reading</div>
+    <div class="modal-sub">Enter RGB values from colordetect2.py output</div>
+
+    <div class="modal-field">
+      <label>Pad 1 — Albumin (R value)</label>
+      <input type="number" id="pad1R" placeholder="e.g. 210" min="0" max="255"/>
+    </div>
+    <div class="modal-field">
+      <label>Pad 1 — Albumin (G value)</label>
+      <input type="number" id="pad1G" placeholder="e.g. 180" min="0" max="255"/>
+    </div>
+    <div class="modal-field">
+      <label>Pad 1 — Albumin (B value)</label>
+      <input type="number" id="pad1B" placeholder="e.g. 45" min="0" max="255"/>
+    </div>
+    <div class="modal-field">
+      <label>Pad 2 — Creatinine (R value)</label>
+      <input type="number" id="pad2R" placeholder="e.g. 190" min="0" max="255"/>
+    </div>
+    <div class="modal-field">
+      <label>Pad 2 — Creatinine (G value)</label>
+      <input type="number" id="pad2G" placeholder="e.g. 170" min="0" max="255"/>
+    </div>
+    <div class="modal-field">
+      <label>Pad 2 — Creatinine (B value)</label>
+      <input type="number" id="pad2B" placeholder="e.g. 40" min="0" max="255"/>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-submit" onclick="addReading()">Save Reading</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Data store (localStorage for persistence across sessions) ──
+  let readings = JSON.parse(localStorage.getItem('uacr_readings') || '[]');
+
+  // ── Chart setup ──
+  const ctx = document.getElementById('uacrChart').getContext('2d');
+
+  // Risk zone plugin
+  const riskZonePlugin = {
+    id: 'riskZones',
+    beforeDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea) return;
+      const yAxis = scales.y;
+
+      const zones = [
+        { min: 0,   max: 30,  color: 'rgba(0,229,160,0.06)' },
+        { min: 30,  max: 300, color: 'rgba(255,209,102,0.06)' },
+        { min: 300, max: yAxis.max, color: 'rgba(255,77,109,0.06)' },
+      ];
+
+      zones.forEach(z => {
+        const yTop = yAxis.getPixelForValue(Math.min(z.max, yAxis.max));
+        const yBot = yAxis.getPixelForValue(Math.max(z.min, yAxis.min));
+        ctx.fillStyle = z.color;
+        ctx.fillRect(chartArea.left, yTop, chartArea.right - chartArea.left, yBot - yTop);
+      });
+    }
+  };
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    plugins: [riskZonePlugin],
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'uACR (mg/g)',
+        data: [],
+        borderColor: '#00c8ff',
+        backgroundColor: 'rgba(0,200,255,0.08)',
+        pointBackgroundColor: [],
+        pointBorderColor: '#0a0e1a',
+        pointBorderWidth: 2,
+        pointRadius: 7,
+        pointHoverRadius: 10,
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: '#1e2d45',
+          borderWidth: 1,
+          titleColor: '#00c8ff',
+          bodyColor: '#e8f0fe',
+          titleFont: { family: 'Syne', size: 13, weight: '600' },
+          bodyFont: { family: 'DM Mono', size: 11 },
+          padding: 14,
+          callbacks: {
+            label: ctx => ` uACR: ${ctx.parsed.y.toFixed(2)} mg/g (est.)`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(30,45,69,0.6)' },
+          ticks: {
+            color: '#4a5568',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 30,
+          }
+        },
+        y: {
+          grid: { color: 'rgba(30,45,69,0.6)' },
+          ticks: {
+            color: '#4a5568',
+            font: { family: 'DM Mono', size: 10 },
+            callback: v => v + ' mg/g'
+          },
+          title: {
+            display: true,
+            text: 'uACR (mg/g)',
+            color: '#4a5568',
+            font: { family: 'DM Mono', size: 10 }
+          }
+        }
+      }
+    }
+  });
+
+  // ── Helpers ──
+  function getRiskLevel(uacr) {
+    if (uacr < 30) return { label: 'Normal', cls: 'normal' };
+    if (uacr <= 300) return { label: 'Moderate', cls: 'moderate' };
+    return { label: 'High', cls: 'high' };
+  }
+
+  function getPointColor(uacr) {
+    if (uacr < 30) return '#00e5a0';
+    if (uacr <= 300) return '#ffd166';
+    return '#ff4d6d';
+  }
+
+  // uACR estimation from RGB
+  // Uses R channel as proxy for color intensity until calibration curve is established
+  function estimateUACR(pad1R, pad2R) {
+    if (pad2R === 0) return 0;
+    return parseFloat((pad1R / pad2R * 30).toFixed(2)); // placeholder scaling factor
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+           ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ── Render ──
+  function render() {
+    // Stats
+    if (readings.length > 0) {
+      const last = readings[readings.length - 1];
+      document.getElementById('latestUACR').textContent = last.uacr;
+      document.getElementById('latestAlbumin').textContent = last.pad1R;
+      document.getElementById('latestCreatinine').textContent = last.pad2R;
+    }
+    document.getElementById('totalReadings').textContent = readings.length;
+
+    // Chart
+    chart.data.labels = readings.map(r => formatDate(r.timestamp));
+    chart.data.datasets[0].data = readings.map(r => r.uacr);
+    chart.data.datasets[0].pointBackgroundColor = readings.map(r => getPointColor(r.uacr));
+    chart.update();
+
+    // Table
+    const tbody = document.getElementById('readingsBody');
+    if (readings.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted); text-align:center; padding:32px 0; font-size:11px; letter-spacing:1px;">No readings yet. Add your first reading above.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = [...readings].reverse().map(r => {
+      const risk = getRiskLevel(r.uacr);
+      const hex1 = rgbToHex(r.pad1R, r.pad1G, r.pad1B);
+      const hex2 = rgbToHex(r.pad2R, r.pad2G, r.pad2B);
+      return `
+        <tr>
+          <td>${formatDate(r.timestamp)}</td>
+          <td><span class="swatch" style="background:${hex1}"></span>R=${r.pad1R} G=${r.pad1G} B=${r.pad1B}</td>
+          <td><span class="swatch" style="background:${hex2}"></span>R=${r.pad2R} G=${r.pad2G} B=${r.pad2B}</td>
+          <td>${r.uacr} mg/g</td>
+          <td><span class="badge ${risk.cls}">${risk.label}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // ── Modal ──
+  function openModal() {
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    ['pad1R','pad1G','pad1B','pad2R','pad2G','pad2B'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+
+  function addReading() {
+    const pad1R = parseInt(document.getElementById('pad1R').value) || 0;
+    const pad1G = parseInt(document.getElementById('pad1G').value) || 0;
+    const pad1B = parseInt(document.getElementById('pad1B').value) || 0;
+    const pad2R = parseInt(document.getElementById('pad2R').value) || 0;
+    const pad2G = parseInt(document.getElementById('pad2G').value) || 0;
+    const pad2B = parseInt(document.getElementById('pad2B').value) || 0;
+
+    if (pad1R === 0 && pad2R === 0) {
+      alert('Please enter at least the R values for both pads.');
+      return;
+    }
+
+    const uacr = estimateUACR(pad1R, pad2R);
+    const reading = {
+      timestamp: new Date().toISOString(),
+      pad1R, pad1G, pad1B,
+      pad2R, pad2G, pad2B,
+      uacr
+    };
+
+    readings.push(reading);
+    localStorage.setItem('uacr_readings', JSON.stringify(readings));
+    closeModal();
+    render();
+  }
+
+  function logout() {
+    window.location.href = 'index.html';
+  }
+
+  // ── Init ──
+  render();
+</script>
+</body>
+</html>
