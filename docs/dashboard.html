@@ -699,8 +699,7 @@
   async function getFileSHA() {
     const res = await fetch(GITHUB_API, { headers: ghHeaders });
     const data = await res.json();
-    return { sha: data.sha, current: JSON.parse(atob(data.content.replace(/
-/g,""))) };
+    return { sha: data.sha, current: JSON.parse(atob(data.content.split("\n").join(""))) };
   }
 
   async function pushReadings(newReadings, message) {
