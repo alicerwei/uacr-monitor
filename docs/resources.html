@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>uACR Monitor — Resources</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f8fa; --surface: #ffffff; --surface2: #f0f2f5;
+      --border: #e2e6ed; --border-strong: #c8cdd6;
+      --accent: #0066ff; --accent-light: #e8f0ff;
+      --text: #0f1923; --text2: #3d4a5c; --muted: #8a94a6;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(0,102,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,102,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px; pointer-events: none; z-index: 0;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,248,250,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); padding: 0 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px; position: relative;
+    }
+    .nav-brand img { height: 36px; width: auto; }
+    .nav-center {
+      display: flex; align-items: center; gap: 4px;
+      position: absolute; left: 50%; transform: translateX(-50%);
+    }
+    .nav-tab {
+      font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+      letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px; transition: all 0.15s;
+    }
+    .nav-tab:hover { color: var(--text); background: var(--surface2); }
+    .nav-tab.active { color: var(--accent); background: var(--accent-light); }
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-patient { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); letter-spacing: 0.5px; }
+    .nav-patient span { color: var(--accent); font-weight: 500; }
+    .nav-divider { width: 1px; height: 16px; background: var(--border); }
+    .logout-btn {
+      font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); background: none;
+      border: 1px solid var(--border); border-radius: 4px; padding: 5px 12px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .logout-btn:hover { color: var(--text); border-color: var(--border-strong); }
+    main { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 40px 40px 80px; }
+    .welcome { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); animation: fadeUp 0.5s ease both; }
+    .welcome-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .welcome-title { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+    .welcome-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 6px; letter-spacing: 0.5px; }
+    .section-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; margin-top: 32px; }
+    .resource-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; animation: fadeUp 0.5s ease 0.08s both; }
+    .resource-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 24px; text-decoration: none;
+      color: var(--text); transition: all 0.15s; display: block;
+      position: relative; overflow: hidden;
+    }
+    .resource-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: var(--accent); transform: scaleX(0);
+      transition: transform 0.2s; transform-origin: left;
+    }
+    .resource-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,102,255,0.08); }
+    .resource-card:hover::after { transform: scaleX(1); }
+    .resource-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .resource-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+    .resource-desc { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 14px; }
+    .resource-link { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.5px; }
+    .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-top: 16px; animation: fadeUp 0.5s ease 0.16s both; }
+    .info-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text2); }
+    .info-value { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+    .badge { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 7px; border-radius: 3px; font-weight: 500; }
+    .badge.normal { background: #e3f5ed; color: #00875a; }
+    .badge.moderate { background: #fff4e0; color: #b36a00; }
+    .badge.high { background: #ffeef2; color: #cc2244; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 768px) { .resource-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand"><img src="logo.png" alt="uACR Monitor Logo"/></div>
+  <div class="nav-center">
+    <a href="dashboard.html" class="nav-tab">Dashboard</a>
+    <a href="profile.html" class="nav-tab">Profile</a>
+    <a href="resources.html" class="nav-tab active">Resources</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-patient">Patient: <span>BME 4090</span></div>
+    <div class="nav-divider"></div>
+    <button class="logout-btn" onclick="window.location.href='index.html'">Logout</button>
+  </div>
+</nav>
+
+<main>
+  <div class="welcome">
+    <div class="welcome-label">Education</div>
+    <div class="welcome-title">Kidney Health Resources</div>
+    <div class="welcome-sub">Trusted clinical references and educational materials</div>
+  </div>
+
+  <div class="section-title">Clinical References</div>
+  <div class="resource-grid">
+    <a href="https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease-ckd/what-is-chronic-kidney-disease" target="_blank" class="resource-card">
+      <div class="resource-tag">NIDDK · Patient Education</div>
+      <div class="resource-title">What is Chronic Kidney Disease?</div>
+      <div class="resource-desc">An overview of CKD, including causes, symptoms, stages, and treatment options from the National Institute of Diabetes and Digestive and Kidney Diseases.</div>
+      <div class="resource-link">niddk.nih.gov →</div>
+    </a>
+    <a href="https://www.niddk.nih.gov/health-information/professionals/advanced-search/quick-reference-uacr-gfr" target="_blank" class="resource-card">
+      <div class="resource-tag">NIDDK · Clinical Reference</div>
+      <div class="resource-title">Quick Reference: uACR & GFR</div>
+      <div class="resource-desc">A clinical quick reference guide for healthcare professionals on interpreting urine albumin-to-creatinine ratio and glomerular filtration rate values.</div>
+      <div class="resource-link">niddk.nih.gov →</div>
+    </a>
+  </div>
+
+  <div class="section-title">uACR Reference Ranges</div>
+  <div class="info-card">
+    <div class="info-title">Interpreting Your uACR Results</div>
+    <div class="info-row">
+      <div class="info-label">Normal</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="info-value">Less than 30 mg/g</div>
+        <span class="badge normal">Normal</span>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">Moderately Increased (Microalbuminuria)</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="info-value">30 – 300 mg/g</div>
+        <span class="badge moderate">Moderate</span>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">Severely Increased (Macroalbuminuria)</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="info-value">Greater than 300 mg/g</div>
+        <span class="badge high">High</span>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">Note</div>
+      <div class="info-value" style="color:var(--muted); font-size:11px;">uACR values shown are estimates pending RGB calibration</div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
