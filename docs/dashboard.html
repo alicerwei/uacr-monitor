@@ -863,7 +863,7 @@
   // ── Fetch readings from Pi ──
   async function fetchReadings() {
     try {
-      const res = await fetch(`${API}/readings`);
+      const res = await fetch(API + "/readings");
       if (!res.ok) throw new Error("Server error");
       readings = await res.json();
       render();
@@ -934,7 +934,7 @@
           bodyFont: { family: 'IBM Plex Mono', size: 11 },
           padding: 12,
           callbacks: {
-            label: ctx => ` uACR: ${ctx.parsed.y.toFixed(2)} mg/g (est.)`
+            label: function(ctx) { return " Result: " + (ctx.parsed.y === 1 ? "Normal" : "Abnormal"); }
           }
         }
       },
@@ -1128,7 +1128,7 @@
     }
 
     try {
-      const res = await fetch(`${API}/readings`, {
+      const res = await fetch(API + "/readings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pad1R, pad1G, pad1B, pad2R, pad2G, pad2B })
@@ -1144,7 +1144,7 @@
   async function clearAllReadings() {
     if (!confirm("Delete all readings? This cannot be undone.")) return;
     try {
-      const res = await fetch(`${API}/readings`, { method: "DELETE" });
+      const res = await fetch(API + "/readings", { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       await fetchReadings();
     } catch (err) {
@@ -1156,7 +1156,7 @@
     try {
       // Index in table is reversed (newest first), so convert back to actual index
       const actualIndex = readings.length - 1 - index;
-      const res = await fetch(`${API}/readings/${actualIndex}`, { method: "DELETE" });
+      const res = await fetch(API + "/readings/" + actualIndex, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       await fetchReadings();
     } catch (err) {
