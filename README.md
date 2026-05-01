@@ -6,6 +6,8 @@ Built for BME 4090 — Cornell University.
 ## Pages
 - `index.html` — Patient login
 - `dashboard.html` — uACR history, chart, and reading log
+- `profile.html` — Profile for username and password
+- `resources.html` — Educational resources for user access
 
 ## uACR Estimation Note
 uACR is currently estimated using a placeholder ratio of pad1R / pad2R × 30.
